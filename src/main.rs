@@ -116,7 +116,6 @@ pub fn main() {
         //Rendering panels
         for panel in &mut panels {
             panel.render(&mut canvas, &texture);
-            panel.render(&mut canvas, &texture);
         }
 
         canvas.present();
