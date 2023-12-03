@@ -13,7 +13,7 @@ struct Panel {
     line: Rect,
     overline: Rect,
     loot: Rect,
-    buttonDown: bool,
+    button_down: bool,
 }
 
 impl Panel {
@@ -23,7 +23,7 @@ impl Panel {
             line: Rect::new(150 + x, 220 + y, 500, 50),
             overline: Rect::new(150 + x, 220 + y, 0, 50),
             loot: Rect::new(300 + x, 10 + y, 200, 200),
-            buttonDown: false,
+            button_down: false,
         }
     }
 
@@ -33,10 +33,12 @@ impl Panel {
         canvas.fill_rect(self.line).unwrap();
 
         //loot
-        canvas.copy(&texture, None, self.loot);
+        canvas
+            .copy(texture, None, self.loot)
+            .expect("Texture couldn't be loaded");
 
         //button & overline
-        if self.buttonDown {
+        if self.button_down {
             canvas.set_draw_color(Color::RGB(215, 120, 192));
             canvas.fill_rect(self.button).unwrap();
 
@@ -58,7 +60,7 @@ impl Panel {
 pub fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
-    let image_context = sdl2::image::init(InitFlag::PNG).unwrap();
+    let _image_context = sdl2::image::init(InitFlag::PNG).unwrap();
 
     let window = video_subsystem
         .window("Melvor Idle Budget", 2560, 1600)
@@ -105,7 +107,7 @@ pub fn main() {
                 } => {
                     for panel in &mut panels {
                         if panel.button.contains_point((x, y)) {
-                            panel.buttonDown = !panel.buttonDown;
+                            panel.button_down = !panel.button_down;
                         }
                     }
                 }

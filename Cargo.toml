@@ -1,5 +1,5 @@
 [package]
-name = "SDL2"
+name = "sdl2"
 version = "0.1.0"
 edition = "2021"
 
