@@ -54,8 +54,8 @@ impl Panel {
         canvas.fill_rect(self.line).unwrap();
 
         //loot
-        canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.fill_rect(self.loot_outline).unwrap();
+        //        canvas.set_draw_color(Color::RGB(66, 75, 79));
+        //      canvas.fill_rect(self.loot_outline).unwrap();
         canvas
             .copy(texture, None, self.loot)
             .expect("Texture couldn't be loaded");
@@ -80,13 +80,12 @@ impl Panel {
             if self.overline.width() > self.line.width() {
                 self.overline.set_width(0);
                 if self.health_rect.width() > self.damage {
-                    self.health_rect
-                        .set_width(self.health_rect.width() - self.damage);
+                    self.health_rect.set_width(self.health_rect.width() - 10); //self.damage);
                 } else {
                     self.health_rect.set_width(0);
                 }
             } else {
-                self.overline.set_width(self.overline.width() + 2);
+                self.overline.set_width(self.overline.width() + 500);
             }
             canvas.set_draw_color(Color::RGB(255, 234, 139));
             canvas.fill_rect(self.overline).unwrap();
@@ -139,6 +138,16 @@ pub fn main() {
         dmg -= 5;
     }
 
+    let mut textures = Vec::new();
+    textures.push("../pictures/bonfire.png");
+    textures.push("../pictures/spear.png");
+    textures.push("../pictures/anvil.png");
+    textures.push("../pictures/factory.png");
+    textures.push("../pictures/chemistry.png");
+    textures.push("../pictures/rocket.png");
+    textures.push("../pictures/computer.png");
+    textures.push("../pictures/linux.png");
+
     let texture_creator = canvas.texture_creator();
 
     let font = ttf_conbutton_text
@@ -160,10 +169,6 @@ pub fn main() {
     let win_text = texture_creator
         .create_texture_from_surface(&surface_win_text)
         .expect("Texture creator failed");
-
-    let texture = texture_creator
-        .load_texture("../pictures/bonfire.png")
-        .expect("Failed to load PNG");
 
     let win_text_rect = Rect::new(780, 1100, 1000, 300);
 
@@ -199,7 +204,10 @@ pub fn main() {
         }
 
         //Rendering panel
-        for panel in &mut panels {
+        for (index, panel) in panels.iter_mut().enumerate() {
+            let texture = texture_creator
+                .load_texture(textures[index])
+                .expect("Failed to load PNG");
             panel.render(&mut canvas, &texture, &button_text);
             if !panel.dead {
                 break;
@@ -213,6 +221,6 @@ pub fn main() {
         }
 
         canvas.present();
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        //        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 }
