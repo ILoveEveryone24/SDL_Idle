@@ -10,24 +10,34 @@ use std::time::Duration;
 
 struct Panel {
     button: Rect,
+    button_outline: Rect,
     health_rect: Rect,
-    health: u32,
+    health_rect_outline: Rect,
     line: Rect,
     overline: Rect,
+    line_outline: Rect,
     loot: Rect,
+    loot_outline: Rect,
+    damage: u32,
     button_down: bool,
+    dead: bool,
 }
 
 impl Panel {
-    fn new(x: i32, y: i32, hp: u32) -> Panel {
+    fn new(x: i32, y: i32, dmg: u32) -> Panel {
         Panel {
             button: Rect::new(300 + x, 360 + y, 200, 100),
-            health_rect: Rect::new(300 + x, 220 + y, 50, 50),
-            health: hp,
+            button_outline: Rect::new(295 + x, 355 + y, 210, 110),
+            health_rect: Rect::new(200 + x, 225 + y, 400, 40),
+            health_rect_outline: Rect::new(195 + x, 220 + y, 410, 50),
             line: Rect::new(150 + x, 280 + y, 500, 50),
+            line_outline: Rect::new(145 + x, 275 + y, 510, 60),
             overline: Rect::new(150 + x, 280 + y, 0, 50),
             loot: Rect::new(300 + x, 10 + y, 200, 200),
+            loot_outline: Rect::new(295 + x, 5 + y, 210, 210),
+            damage: dmg,
             button_down: false,
+            dead: false,
         }
     }
 
@@ -35,67 +45,72 @@ impl Panel {
         &mut self,
         canvas: &mut sdl2::render::WindowCanvas,
         texture: &sdl2::render::Texture,
-        text: &sdl2::render::Texture,
-        font: &sdl2::ttf::Font,
+        button_text: &sdl2::render::Texture,
     ) {
-        let texture_creator = canvas.texture_creator();
         //line
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.fill_rect(self.line_outline).unwrap();
         canvas.set_draw_color(Color::RGB(88, 97, 101));
         canvas.fill_rect(self.line).unwrap();
 
         //loot
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.fill_rect(self.loot_outline).unwrap();
         canvas
             .copy(texture, None, self.loot)
             .expect("Texture couldn't be loaded");
 
         //hp
-        canvas.set_draw_color(Color::RGB(255, 178, 102));
-        canvas.fill_rect(self.health_rect).unwrap();
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.fill_rect(self.health_rect_outline).unwrap();
+        if self.health_rect.width() > 1 {
+            canvas.set_draw_color(Color::RGB(210, 0, 0));
+            canvas.fill_rect(self.health_rect).unwrap();
+        } else {
+            self.dead = true;
+        }
 
         //button & overline
-        if self.button_down {
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+        canvas.fill_rect(self.button_outline).unwrap();
+        if self.button_down && !self.dead {
             canvas.set_draw_color(Color::RGB(215, 120, 192));
             canvas.fill_rect(self.button).unwrap();
 
             if self.overline.width() > self.line.width() {
                 self.overline.set_width(0);
-                if self.health > 0 {
-                    self.health -= 1;
+                if self.health_rect.width() > self.damage {
+                    self.health_rect
+                        .set_width(self.health_rect.width() - self.damage);
+                } else {
+                    self.health_rect.set_width(0);
                 }
             } else {
-                self.overline.set_width(self.overline.width() + 10);
+                self.overline.set_width(self.overline.width() + 2);
             }
             canvas.set_draw_color(Color::RGB(255, 234, 139));
             canvas.fill_rect(self.overline).unwrap();
+        } else if self.dead {
+            canvas.set_draw_color(Color::RGB(66, 75, 79));
+            canvas.fill_rect(self.button).unwrap();
         } else {
             canvas.set_draw_color(Color::RGB(121, 215, 120));
             canvas.fill_rect(self.button).unwrap();
             self.overline.set_width(0);
         }
 
-        let hp_surface = font
-            .render(&self.health.to_string())
-            .blended(Color::RGBA(255, 255, 255, 255))
-            .expect("No hp_surface");
-        let hp = texture_creator
-            .create_texture_from_surface(&hp_surface)
-            .expect("Texture creator failed");
-
-        //text on button
+        //button_text on button
         canvas
-            .copy(text, None, self.button)
-            .expect("Texture couldn't be loaded");
-        canvas
-            .copy(&hp, None, self.health_rect)
-            .expect("Texture couldn't be loaded");
+            .copy(button_text, None, self.button)
+            .expect("Texture couldn't be loaded")
     }
 }
 
 pub fn main() {
-    let sdl_context = sdl2::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let _image_context = sdl2::image::init(InitFlag::PNG).unwrap();
-    let ttf_context = sdl2::ttf::init().unwrap();
+    let sdl_conbutton_text = sdl2::init().unwrap();
+    let video_subsystem = sdl_conbutton_text.video().unwrap();
+    let _image_conbutton_text = sdl2::image::init(InitFlag::PNG).unwrap();
+    let ttf_conbutton_text = sdl2::ttf::init().unwrap();
 
     let window = video_subsystem
         .window("Melvor Idle Budget", 2560, 1600)
@@ -106,34 +121,51 @@ pub fn main() {
 
     let mut canvas = window.into_canvas().build().unwrap();
 
-    let mut event_pump = sdl_context.event_pump().unwrap();
-
-    let mut panel_one = Panel::new(0, 0, 30);
-    let mut panel_two = Panel::new(600, 0, 50);
-    let mut panel_three = Panel::new(1200, 0, 10);
+    let mut event_pump = sdl_conbutton_text.event_pump().unwrap();
 
     let mut panels = Vec::new();
-    panels.push(&mut panel_one);
-    panels.push(&mut panel_two);
-    panels.push(&mut panel_three);
+    let mut width = 0;
+    let mut height = 0;
+    let mut dmg = 41;
+    for _ in 0..8 {
+        if width <= 1800 {
+            panels.push(Panel::new(width, height, dmg));
+            width += 600;
+        }
+        if height < 500 && width > 1800 {
+            width = 0;
+            height = 500;
+        }
+        dmg -= 5;
+    }
 
     let texture_creator = canvas.texture_creator();
 
-    let font = ttf_context
-        .load_font("../fonts/OpenSans.ttf", 128)
+    let font = ttf_conbutton_text
+        .load_font("../fonts/OpenSans.ttf", 256)
         .expect("Couldn't load font");
 
-    let surface = font
+    let surface_button = font
         .render("Press!")
         .blended(Color::RGBA(0, 0, 0, 255))
-        .expect("No surface");
-    let text = texture_creator
-        .create_texture_from_surface(&surface)
+        .expect("No surface_button");
+    let button_text = texture_creator
+        .create_texture_from_surface(&surface_button)
+        .expect("Texture creator failed");
+
+    let surface_win_text = font
+        .render("You won!")
+        .blended(Color::RGBA(0, 0, 0, 255))
+        .expect("No surface_win_button_text");
+    let win_text = texture_creator
+        .create_texture_from_surface(&surface_win_text)
         .expect("Texture creator failed");
 
     let texture = texture_creator
         .load_texture("../pictures/bonfire.png")
         .expect("Failed to load PNG");
+
+    let win_text_rect = Rect::new(780, 1100, 1000, 300);
 
     'running: loop {
         canvas.set_draw_color(Color::RGB(66, 75, 79)); //background color
@@ -157,15 +189,27 @@ pub fn main() {
                         if panel.button.contains_point((x, y)) {
                             panel.button_down = !panel.button_down;
                         }
+                        if !panel.dead {
+                            break;
+                        }
                     }
                 }
                 _ => {}
             }
         }
 
-        //Rendering panels
+        //Rendering panel
         for panel in &mut panels {
-            panel.render(&mut canvas, &texture, &text, &font);
+            panel.render(&mut canvas, &texture, &button_text);
+            if !panel.dead {
+                break;
+            }
+        }
+        let you_win = panels.iter().all(|panel| panel.dead);
+        if you_win {
+            canvas
+                .copy(&win_text, None, win_text_rect)
+                .expect("Texture couldn't be loaded");
         }
 
         canvas.present();
