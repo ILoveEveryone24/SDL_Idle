@@ -17,7 +17,6 @@ struct Panel {
     overline: Rect,
     line_outline: Rect,
     loot: Rect,
-    loot_outline: Rect,
     damage: u32,
     button_down: bool,
     dead: bool,
@@ -34,7 +33,6 @@ impl Panel {
             line_outline: Rect::new(145 + x, 275 + y, 510, 60),
             overline: Rect::new(150 + x, 280 + y, 0, 50),
             loot: Rect::new(300 + x, 10 + y, 200, 200),
-            loot_outline: Rect::new(295 + x, 5 + y, 210, 210),
             damage: dmg,
             button_down: false,
             dead: false,
@@ -54,8 +52,6 @@ impl Panel {
         canvas.fill_rect(self.line).unwrap();
 
         //loot
-        //        canvas.set_draw_color(Color::RGB(66, 75, 79));
-        //      canvas.fill_rect(self.loot_outline).unwrap();
         canvas
             .copy(texture, None, self.loot)
             .expect("Texture couldn't be loaded");
@@ -80,7 +76,8 @@ impl Panel {
             if self.overline.width() > self.line.width() {
                 self.overline.set_width(0);
                 if self.health_rect.width() > self.damage {
-                    self.health_rect.set_width(self.health_rect.width() - 10); //self.damage);
+                    self.health_rect
+                        .set_width(self.health_rect.width() - self.damage);
                 } else {
                     self.health_rect.set_width(0);
                 }
@@ -138,17 +135,34 @@ pub fn main() {
         dmg -= 5;
     }
 
-    let mut textures = Vec::new();
-    textures.push("../pictures/bonfire.png");
-    textures.push("../pictures/spear.png");
-    textures.push("../pictures/anvil.png");
-    textures.push("../pictures/factory.png");
-    textures.push("../pictures/chemistry.png");
-    textures.push("../pictures/rocket.png");
-    textures.push("../pictures/computer.png");
-    textures.push("../pictures/linux.png");
-
     let texture_creator = canvas.texture_creator();
+
+    let textures = vec![
+        texture_creator
+            .load_texture("../pictures/bonfire.png")
+            .expect("Failed to load bonfire"),
+        texture_creator
+            .load_texture("../pictures/spear.png")
+            .expect("Failed to load spear"),
+        texture_creator
+            .load_texture("../pictures/anvil.png")
+            .expect("Failed to load anvil"),
+        texture_creator
+            .load_texture("../pictures/factory.png")
+            .expect("Failed to load factory"),
+        texture_creator
+            .load_texture("../pictures/chemistry.png")
+            .expect("Failed to load chemistry"),
+        texture_creator
+            .load_texture("../pictures/rocket.png")
+            .expect("Failed to load rocket"),
+        texture_creator
+            .load_texture("../pictures/computer.png")
+            .expect("Failed to load computer"),
+        texture_creator
+            .load_texture("../pictures/linux.png")
+            .expect("Failed to load linux"),
+    ];
 
     let font = ttf_conbutton_text
         .load_font("../fonts/OpenSans.ttf", 256)
@@ -205,10 +219,8 @@ pub fn main() {
 
         //Rendering panel
         for (index, panel) in panels.iter_mut().enumerate() {
-            let texture = texture_creator
-                .load_texture(textures[index])
-                .expect("Failed to load PNG");
-            panel.render(&mut canvas, &texture, &button_text);
+            let texture = &textures[index];
+            panel.render(&mut canvas, texture, &button_text);
             if !panel.dead {
                 break;
             }
@@ -221,6 +233,6 @@ pub fn main() {
         }
 
         canvas.present();
-        //        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
 }
