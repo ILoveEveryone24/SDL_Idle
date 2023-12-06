@@ -47,31 +47,64 @@ impl Panel {
     ) {
         //line
         canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.fill_rect(self.line_outline).unwrap();
+        match canvas.fill_rect(self.line_outline) {
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("An error ocurred: {:?}", error);
+            }
+        }
         canvas.set_draw_color(Color::RGB(88, 97, 101));
-        canvas.fill_rect(self.line).unwrap();
+        match canvas.fill_rect(self.line) {
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("An error ocurred: {:?}", error);
+            }
+        }
 
         //loot
-        canvas
-            .copy(texture, None, self.loot)
-            .expect("Texture couldn't be loaded");
+        match canvas.copy(texture, None, self.loot) {
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("An error ocurred: {:?}", error);
+            }
+        }
 
         //hp
         canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.fill_rect(self.health_rect_outline).unwrap();
+        match canvas.fill_rect(self.health_rect_outline) {
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("An error ocurred: {:?}", error);
+            }
+        }
         if self.health_rect.width() > 1 {
             canvas.set_draw_color(Color::RGB(210, 0, 0));
-            canvas.fill_rect(self.health_rect).unwrap();
+            match canvas.fill_rect(self.health_rect) {
+                Ok(_) => {}
+                Err(error) => {
+                    eprintln!("An error ocurred: {:?}", error);
+                }
+            }
         } else {
             self.dead = true;
         }
 
         //button & overline
         canvas.set_draw_color(Color::RGB(0, 0, 0));
-        canvas.fill_rect(self.button_outline).unwrap();
+        match canvas.fill_rect(self.button_outline) {
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("An error ocurred: {:?}", error);
+            }
+        }
         if self.button_down && !self.dead {
             canvas.set_draw_color(Color::RGB(215, 120, 192));
-            canvas.fill_rect(self.button).unwrap();
+            match canvas.fill_rect(self.button) {
+                Ok(_) => {}
+                Err(error) => {
+                    eprintln!("An error ocurred: {:?}", error);
+                }
+            }
 
             if self.overline.width() > self.line.width() {
                 self.overline.set_width(0);
@@ -85,39 +118,78 @@ impl Panel {
                 self.overline.set_width(self.overline.width() + 500);
             }
             canvas.set_draw_color(Color::RGB(255, 234, 139));
-            canvas.fill_rect(self.overline).unwrap();
+            match canvas.fill_rect(self.overline) {
+                Ok(_) => {}
+                Err(error) => {
+                    eprintln!("An error ocurred: {:?}", error);
+                }
+            }
         } else if self.dead {
             canvas.set_draw_color(Color::RGB(66, 75, 79));
-            canvas.fill_rect(self.button).unwrap();
+            match canvas.fill_rect(self.button) {
+                Ok(_) => {}
+                Err(error) => {
+                    eprintln!("An error ocurred: {:?}", error);
+                }
+            }
         } else {
             canvas.set_draw_color(Color::RGB(121, 215, 120));
-            canvas.fill_rect(self.button).unwrap();
+            match canvas.fill_rect(self.button) {
+                Ok(_) => {}
+                Err(error) => {
+                    eprintln!("An error ocurred: {:?}", error);
+                }
+            }
             self.overline.set_width(0);
         }
 
         //button_text on button
-        canvas
-            .copy(button_text, None, self.button)
-            .expect("Texture couldn't be loaded")
+        match canvas.copy(button_text, None, self.button) {
+            Ok(_) => {}
+            Err(error) => {
+                eprintln!("An error ocurred {:?}", error);
+            }
+        }
     }
 }
 
 pub fn main() {
-    let sdl_conbutton_text = sdl2::init().unwrap();
-    let video_subsystem = sdl_conbutton_text.video().unwrap();
-    let _image_conbutton_text = sdl2::image::init(InitFlag::PNG).unwrap();
-    let ttf_conbutton_text = sdl2::ttf::init().unwrap();
+    let sdl_context = match sdl2::init() {
+        Ok(x) => x,
+        Err(error) => panic!("Couldn't initialize sdl context: {:?}", error),
+    };
+    let video_subsystem = match sdl_context.video() {
+        Ok(x) => x,
+        Err(error) => panic!("Couldn't initialize video_subsystem: {:?}", error),
+    };
+    let _image_context = match sdl2::image::init(InitFlag::PNG) {
+        Ok(x) => x,
+        Err(error) => panic!("Couldn't initialize image context: {:?}", error),
+    };
+    let ttf_context = match sdl2::ttf::init() {
+        Ok(x) => x,
+        Err(error) => panic!("Couldn't initialize ttf context: {:?}", error),
+    };
 
-    let window = video_subsystem
+    let window = match video_subsystem
         .window("Melvor Idle Budget", 2560, 1600)
         .position_centered()
         .resizable()
         .build()
-        .unwrap();
+    {
+        Ok(x) => x,
+        Err(error) => panic!("Couldn't create a window: {:?}", error),
+    };
 
-    let mut canvas = window.into_canvas().build().unwrap();
+    let mut canvas = match window.into_canvas().build() {
+        Ok(x) => x,
+        Err(error) => panic!("Couldn't create canvas: {:?}", error),
+    };
 
-    let mut event_pump = sdl_conbutton_text.event_pump().unwrap();
+    let mut event_pump = match sdl_context.event_pump() {
+        Ok(x) => x,
+        Err(error) => panic!("Couldn't catch events: {:?}", error),
+    };
 
     let mut panels = Vec::new();
     let mut width = 0;
@@ -164,7 +236,7 @@ pub fn main() {
             .expect("Failed to load linux"),
     ];
 
-    let font = ttf_conbutton_text
+    let font = ttf_context
         .load_font("../fonts/OpenSans.ttf", 256)
         .expect("Couldn't load font");
 
@@ -187,7 +259,8 @@ pub fn main() {
     let win_text_rect = Rect::new(780, 1100, 1000, 300);
 
     'running: loop {
-        canvas.set_draw_color(Color::RGB(66, 75, 79)); //background color
+        //Background color
+        canvas.set_draw_color(Color::RGB(66, 75, 79));
         canvas.clear();
 
         //Handling events
